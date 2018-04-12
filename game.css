@@ -1,0 +1,120 @@
+h1{
+	text-align: center;
+	font-size: 24pt;
+	color: blue;
+}
+#main{
+	margin-top: 6em;
+
+}
+#header{
+	position: fixed;
+	top:0;
+	width: 100%;
+	height: 83px;
+	text-align: center;
+	font-size: 15pt;
+	border: solid black;
+	background-color: lightblue;
+	color: white;
+}
+#game{
+	margin: auto;
+	width: 700px;
+	height: 700px;
+	border: 2px solid black;
+	display: block;
+}
+#rightbar{
+	float: right;
+	width: 200px;
+	height: 80%;
+	overflow: hidden;
+	border: 1px solid black;
+}
+#leftbar{
+	float: left;
+	width: 200px;
+	height: 80%;
+	overflow: hidden;
+	border: 1px solid black;
+}
+#grid{
+	margin-left: 250px;
+	margin-right: 250px;
+	margin-top: 150px;
+	margin-bottom: 150px;
+	width: 300px;
+	height: 300px;
+	overflow: hidden;
+	position: relative;
+}
+.blank{
+	width: 57px;
+	height: 57px;
+	float: left;
+	background-color: lightgrey;
+	border: 2px black;
+	position: absolute;
+}
+.wood{
+	width: 57px;
+	height: 57px;
+	float: left;
+	background-color: brown;
+	border: 2px black;
+	position: absolute;
+}
+.stone{
+	width: 57px;
+	height: 57px;
+	float: left;
+	background-color: orange;
+	border: 2px black;
+	position: absolute;
+}
+.metal{
+	width: 57px;
+	height: 57px;
+	float: left;
+	background-color: #808080;
+	border: 2px black;
+	position: absolute;
+}
+.blank:hover{
+	cursor: pointer;
+	background-color: pink;
+
+}
+.gamebutton{
+	position: absolute;
+	background-color: lightblue;
+	width: 50px;
+	height: 50px;
+	font-size: 8pt;
+	display: block;
+}
+.gamebutton:hover{
+	cursor: pointer;
+	background-color: blue;
+}
+.bench{
+	position: absolute;
+	background-color: lightblue;
+	width: 50px;
+	height: 50px;
+	font-size: 8pt;
+	display: block;
+	overflow: hidden;
+
+}
+
+.slot{
+	position: absolute;
+	background-color: lightblue;
+	width: 50px;
+	height: 50px;
+	font-size: 8pt;
+	display: block;
+
+}
