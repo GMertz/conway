@@ -34,16 +34,17 @@ window.onload = function(){
 			pause();
 	});
 	document.getElementById("reset").addEventListener("click",function(){
-		console.log("working");
 		if(playing == false){
+		console.log("working");
 			for(var i = 0; i<box.rows; i++){
 					for(var k = 0; k<box.rows;k++){
-						c = box.cells[i][k];
-						c.alive=false;
-						c.c = true;
+						var c = box.cells[i][k];
+						c.alive = true;
+						c.draw();
 					}
 			}
 		}
+		tick();
 	});
 	rowCount = document.getElementById("rows");
 	document.getElementById("init").addEventListener("click",initBoard);
