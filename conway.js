@@ -1,7 +1,7 @@
 "use strict";
 var board;
 var rows = 20;
-var box={cells:[],x:0,y:0,width:600,r:rows};
+var box;
 var ctx;
 var s = 5;
 var mouseX= 0,mouseY=0;
@@ -9,6 +9,10 @@ var mDown=false;
 var update;
 var playing = false;
 var offSets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
+var cellCol ={on:"white",off:"black"};
+var borderCol = "lightblue";
+var rowCount;
+var playButton;
 /*
 weird box spawned at 0,0 for somereason
 fucked performance, garbade collection maybe 
@@ -20,29 +24,60 @@ window.onload = function(){
 	board.addEventListener("mousedown",mouseDown);
 	board.addEventListener("mouseup",mouseUp);
 	board.addEventListener("mousemove",mousePos);
-	document.getElementById("play").addEventListener("mousedown",play);
+ 	playButton = document.getElementById("play");
+	playButton.addEventListener("click",function(){
+		if(playing == false){
+			playButton.innerHTML = "Pause";
+			update = setInterval(tick,1000/10);
+			playing = true;
+		}else
+			pause();
+	});
+	document.getElementById("reset").addEventListener("click",function(){
+		console.log("working");
+		if(playing == false){
+			for(var i = 0; i<box.rows; i++){
+					for(var k = 0; k<box.rows;k++){
+						c = box.cells[i][k];
+						c.alive=false;
+						c.c = true;
+					}
+			}
+		}
+	});
+	rowCount = document.getElementById("rows");
+	document.getElementById("init").addEventListener("click",initBoard);
 	board.width = 600;
 	board.height = 600;
 	ctx=board.getContext("2d");
-	for(var i = 0; i<rows; i++){
+	initBoard();
+}
+function initBoard(){
+	rows = rowCount.value;
+	box = {cells:[],x:0,y:0,width:600,rows:rows};
+	for(var i = 0; i<box.rows; i++){
 		var row = [];
-			for(var k = 0; k<rows;k++){
-				var c = new cell(i,k,box.width/box.r,false);
-				row.push(c);
-				c.draw();
-
-			}
+		for(var k = 0; k<box.rows;k++){
+			var c = new cell(i,k,box.width/box.rows,false);
+			row.push(c);
+			c.draw();
+		}
 		box.cells.push(row);
 	}
+	console.log("pretick");
+	tick();
+	console.log("done");
 }
 function sketch(x,y,w,alive){
-	ctx.fillStyle = "black";
+	ctx.fillStyle = cellCol.off;
 	if(alive){
-		ctx.fillStyle = "white";
+		ctx.fillStyle = cellCol.on;
 	}
-	ctx.fillRect(x*w,y*w,w-2,w-2);
-	ctx.strokeStyle = "white";
-	ctx.rect(x,y,w,w);
+	ctx.fillRect(x*w,y*w,w,w);
+	ctx.beginPath();
+	ctx.strokeStyle = borderCol;
+	ctx.lineWidth = 2;
+	ctx.rect(x*w,y*w,w,w);
 	ctx.stroke();
 }
 function cell (x,y,w,a){
@@ -83,7 +118,10 @@ function cell (x,y,w,a){
 			this.alive = !this.alive;
 			this.draw();
 			this.c = false;
+			return 1;
 		}
+		return 0;
+
 	}
 }
 function tick(){
@@ -93,22 +131,21 @@ function tick(){
 			b.n();
 		}
 	}
+	var total = 0;
 	for(var i = 0; i<rows; i++){
 		for(var k = 0; k<rows; k++){
 			var b = box.cells[i][k];
-			b.change();
+			total += b.change();
 		}
+	}
+	if(total < 1){
+		pause();
 	}
 
 }
 function mouseDown(){
+	mDown = true;
 	if(playing == false){
-		mDown = true;
-	}
-}
-function mouseUp(){
-	if(playing == false){
-		if(mDown){
 			var x = Math.floor((mouseX)/(box.width/rows));
 			var y = Math.floor((mouseY)/(box.width/rows));
 			if(x > -1 && x < rows && y > -1 && y < rows){
@@ -116,24 +153,28 @@ function mouseUp(){
 				b.alive = !b.alive;
 				b.draw();
 			}
-		}
-		mDown = false;
 	}
+}
+function mouseUp(){
+		mDown = false;
 }
 function mousePos(e){
-	if(playing == false){
 		mouseX = e.pageX - board.offsetLeft;
 		mouseY = e.pageY - board.offsetTop;
+	if(playing == false && mDown){
+		if(mouseX > box.x && mouseX < box.x+box.width && mouseY > box.y && mouseY < box.y+box.width ){
+		var x = Math.floor((mouseX)/(box.width/rows));
+		var y = Math.floor((mouseY)/(box.width/rows));
+		if(x > -1 && x < rows && y > -1 && y < rows){
+			var b = box.cells[x][y];
+			b.alive = true;
+			b.draw();
+		}
 	}
 }
-function play(){
-	if(playing == false){
-		update = setInterval(tick,1000/30);
-		playing = true;
-	}else
-		pause();
 }
 function pause(){
+	playButton.innerHTML = "Play";
 	clearInterval(update);
 	playing=false;
 }
