@@ -1,75 +1,139 @@
 "use strict";
 var board;
-var rows = 10;
-var box={cells:[],x:300,y:300,halfWidth:250,r:rows};
+var rows = 20;
+var box={cells:[],x:0,y:0,width:600,r:rows};
 var ctx;
 var s = 5;
+var mouseX= 0,mouseY=0;
+var mDown=false;
+var update;
+var playing = false;
+var offSets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
+/*
+weird box spawned at 0,0 for somereason
+fucked performance, garbade collection maybe 
+let values wrap, add some iffys
+*/
 
 window.onload = function(){
 	board = document.getElementById("game");
+	board.addEventListener("mousedown",mouseDown);
+	board.addEventListener("mouseup",mouseUp);
+	board.addEventListener("mousemove",mousePos);
+	document.getElementById("play").addEventListener("mousedown",play);
 	board.width = 600;
 	board.height = 600;
 	ctx=board.getContext("2d");
 	for(var i = 0; i<rows; i++){
 		var row = [];
 			for(var k = 0; k<rows;k++){
-			var alive = Math.random();
+				var c = new cell(i,k,box.width/box.r,false);
+				row.push(c);
+				c.draw();
 
-			if(alive > .6){
-				alive = true;
-				console.log("thats one alive");
 			}
-			else
-				alive = false;
-
-			row.push(new cell(i,k,box.halfWidth*2*box.rows,alive));
-		}
-		box.cells.push(row);	
+		box.cells.push(row);
 	}
-	setInterval(tick,1000/20);
 }
-function sketch(path,alive){
-	console.log("OMG ITS",alive);
-	ctx.beginPath();
-	for(var i=0; i<path.length; i++){
-		ctx.moveTo(path.p[i][0]*s,path.p[i][1]*s);
+function sketch(x,y,w,alive){
+	ctx.fillStyle = "black";
+	if(alive){
+		ctx.fillStyle = "white";
 	}
-	ctx.closePath();
-	ctx.fillStyle = "white"
+	ctx.fillRect(x*w,y*w,w-2,w-2);
+	ctx.strokeStyle = "white";
+	ctx.rect(x,y,w,w);
 	ctx.stroke();
-	if(!alive)
-		ctx.fillStyle = "black";
-	ctx.fill();
 }
-function cell (x,y,hw,a){
+function cell (x,y,w,a){
 	this.x = x;
 	this.y = y;
+	this.w = w;
 	this.alive = a;
-	this.path = {p:[{x:x-hw,y:y-hw},{x:x+hw,y:y-hw},{x:x+hw,y:y+hw},{x:x-hw,y:y+hw}]};
+	this.c = false;
+	//this.path = [{x:(x*hw)-hw,y:(y*hw)-hw},{x:(x*hw)+hw,y:(y*hw)-hw},{x:(x*hw)+hw,y:(y*hw)+hw},{x:(x*hw)-hw,y:(y*hw)+hw}];
 	this.n = function(){
-		console.log("called");
-		sketch(this.path,this.alive);
 		var s = 0;
-		for(var i = 0; i<2*Math.PI; i+=Math.PI/4){
-			var x = this.x+Math.ceil(Math.cos(i));
-			var y = this.y+Math.ceil(Math.sin(i));
-			var sq = box.cells[this.x+x][this.y+y];//its mad here
-			console.log(sq);
-			if(sq.alive){
+		for(var i = 0; i<8; i++){
+			var x = offSets[i].x+this.x;
+			var y = offSets[i].y+this.y;
+			if(x < 0)
+				x = rows-1;
+			if(x >= rows)
+				x = 0;
+			if(y < 0)
+				y = rows-1;
+			if(y >= rows)
+				y = 0;
+			var sq = box.cells[x][y];
+			if(sq.alive)
 				s++;
-			}
 		}
-		if(s<2 || s> 3)
-			this.alive = false;
-		if(s == 3)
-			this.alive = true;
+		if((this.alive) && (s < 2 || s > 3))
+			this.c = true;
+		else if(s == 3 && !this.alive){
+			this.c = true;
+		}
+	}
+	this.draw = function(){
+		sketch(this.x,this.y,this.w,this.alive);
+	}
+	this.change = function(){
+		if(this.c){
+			this.alive = !this.alive;
+			this.draw();
+			this.c = false;
+		}
 	}
 }
 function tick(){
 	for(var i = 0; i<rows; i++){
 		for(var k = 0; k<rows; k++){
-			box.cells[i][k].n();
+			var b = box.cells[i][k];
+			b.n();
+		}
+	}
+	for(var i = 0; i<rows; i++){
+		for(var k = 0; k<rows; k++){
+			var b = box.cells[i][k];
+			b.change();
 		}
 	}
 
+}
+function mouseDown(){
+	if(playing == false){
+		mDown = true;
+	}
+}
+function mouseUp(){
+	if(playing == false){
+		if(mDown){
+			var x = Math.floor((mouseX)/(box.width/rows));
+			var y = Math.floor((mouseY)/(box.width/rows));
+			if(x > -1 && x < rows && y > -1 && y < rows){
+				var b = box.cells[x][y];
+				b.alive = !b.alive;
+				b.draw();
+			}
+		}
+		mDown = false;
+	}
+}
+function mousePos(e){
+	if(playing == false){
+		mouseX = e.pageX - board.offsetLeft;
+		mouseY = e.pageY - board.offsetTop;
+	}
+}
+function play(){
+	if(playing == false){
+		update = setInterval(tick,1000/30);
+		playing = true;
+	}else
+		pause();
+}
+function pause(){
+	clearInterval(update);
+	playing=false;
 }
