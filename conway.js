@@ -22,7 +22,7 @@ let values wrap, add some iffys
 window.onload = function(){
 	board = document.getElementById("game");
 	board.addEventListener("mousedown",mouseDown);
-	board.addEventListener("mouseup",mouseUp);
+	document.addEventListener("mouseup",mouseUp);
 	board.addEventListener("mousemove",mousePos);
  	playButton = document.getElementById("play");
 	playButton.addEventListener("click",function(){
@@ -174,6 +174,7 @@ function mousePos(e){
 			b.draw();
 		}
 	}
+		
 }
 }
 function pause(){
