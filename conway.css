@@ -4,9 +4,8 @@ h1{
 	color: blue;
 }
 #main{
-	margin-top: 5em;
+	margin-top: 8em;
 	overflow: hidden;
-
 }
 #header{
 	position: fixed;

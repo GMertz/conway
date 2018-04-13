@@ -54,6 +54,8 @@ window.onload = function(){
 }
 function initBoard(){
 	rows = rowCount.value;
+	if(rows > 100)
+		rows = 100;
 	box = {cells:[],x:0,y:0,width:600,rows:rows};
 	for(var i = 0; i<box.rows; i++){
 		var row = [];
