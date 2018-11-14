@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta name="viewport" content="width=device-width initial-scale=1">
 	<title>Conway</title>
 	<link href="conway.css" type="text/css" rel="stylesheet"/>
 	<script src="conway.js" type="text/javascript"></script>
 </head>
 <body>
-	<div id='header'><h1>do u kno da conwae</h1></div>
-	<div id= 'leftbar'>heres some nice text</div>
-	<div id= 'rightbar'>heres some other text</div>
-	<div id='main'>
-	<canvas id='game'>	
-	</canvas>
-
-	<button id="play" class="gamebutton">Play</button>
-	<button id="reset" class="gamebutton">Reset</button>
-	<button id="init" class="gamebutton">re-initialize</button>
-	<input type="number" id="rows" value="10"/>
+	<div id="main">
+		<div id="buttons">
+			<button id="play" class="gamebutton">Play</button>
+			<button id="reset" class="gamebutton">Reset</button>
+			<label float="left" for="rows">Rows</label>
+			<input type="number" id="rows" value="10"/>
+			<label float="left" for="cols">Columns</label>
+			<input type="number" id="cols" value="10"/>
+		</div>
+		<canvas id='game'>	
+		</canvas>
+		<p id="info">Conway's Game of life is a zero player game, which made its first public appearance in 1970.
+		<br /><br />
+	To play, click squares to activate them, then press play to start.
+	<br /><br />
+	You can resize the grid by changing rows/columns and reseting
+	</p>
 	</div>
-
-	
-
+	</div>
 	
 
 </body>

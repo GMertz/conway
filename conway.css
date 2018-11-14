@@ -1,70 +1,77 @@
-h1{
-	text-align: center;
-	font-size: 24pt;
-	color: blue;
+body{
+	background-color: lightblue;
+	font-family: "Arial", san-serif;
+	font-size: 16pt;
 }
 #main{
-	margin-top: 8em;
-	overflow: hidden;
-}
-#header{
-	position: fixed;
-	top:0;
-	width: 100%;
-	height: 83px;
-	text-align: center;
-	font-size: 15pt;
-	border: solid black;
-	background-color: lightblue;
-	color: white;
+
+	display: grid;
+	grid-template-columns: 9% 72% 16%;
+	grid-column-gap: 15px;
+
 }
 #game{
-	overflow: hidden;
 	margin: auto;
-	width: 600px;
-	height: 600px;
-	border: 2px solid black;
-	display: inline
-}
-#rightbar{
-	float: right;
-	width: 100px;
-	height: 800px;
-	overflow: hidden;
-	border: 1px solid black;
-	margin:5px;
-}
-#leftbar{
-	float: left;
-	width: 100px;
-	height: 800px;
-	overflow: hidden;
-	border: 1px solid black;
-	margin: 5px;
+	width: 500px;
+	height: 500px;
+	border: 6px solid black;
 }
 .gamebutton{
-	float:left;
 	margin:auto;
+	background-color: lightpink;
+	width: 80%;
+	height: 20px;
+	padding: auto;
 	overflow: hidden;
-	background-color: lightblue;
-	width: 80px;
-	height: 80px;
-	font-size: 8pt;
-	display: block;
 	border: 2px solid black;
-	border-radius: 50%;
+	border-radius: 20px;
 }
 #rows{
-	float: left;
+	margin: auto;
+	margin-top:-30%;
 	overflow: hidden;
-	background-color: lightblue;
-	width: 100px;
+	background-color: lightpink;
+	width: 80%;
 	height: 20px;
 	font-size: 8pt;
-	display: block;
+	border: 2px solid black;
+}
+#cols{
+	margin: auto;
+	margin-top:-30%;
+	overflow: hidden;
+	background-color: lightpink;
+	width: 80%;
+	height: 20px;
+	font-size: 8pt;
 	border: 2px solid black;
 }
 .gamebutton:hover{
 	cursor: pointer;
-	background-color: lightpink;
+	background-color: lightgrey;
+}
+#buttons{
+	display: grid;
+	grid-gap: 5% 5% 5% 2% 5% 2%;
+	background-color: white;
+	border: 5px black solid;
+	border-radius: 10px;
+	text-align: center;
+	overflow: hidden;
+}
+#info{
+	background-color: white;
+	border: 5px black solid;
+	font-family: "Arial", san-serif;
+	font-size: 12pt;
+	text-align: center;
+	padding: 2%;
+	border-radius: 20px;
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    overflow:hidden;
 }
