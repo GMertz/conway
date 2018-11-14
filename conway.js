@@ -1,19 +1,25 @@
 "use strict";
+
+//offsets used for checking neighbors
 var offsets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
 
 window.onload = function(){
-	var gameBoard = new Board();
-	var playing = false;
-	var gameInterval;
-	var mDown = false;
-	var lastClick = {x:-1,y:-1};
-	var MMVal = 1;
+	var gameBoard = new Board(),
+	 	playing = false,
+		gameInterval,
+		mDown = false,
 
-	var canvas = document.getElementById("game");
+		//so you dont turn toggle a cell you just toggled when clicking and dragging
+		lastClick = {x:-1,y:-1},
+		MMVal = 1, //used for click and drag
+		playButton = document.getElementById("play"),
+		canvas = document.getElementById("game");
+
 	canvas.width = 500;
 	canvas.height = 500;
 	gameBoard.init(10,10,canvas);
 
+	//activate a cell at x,y and draw it
 	canvas.addEventListener("mousedown", function(e){
 		mDown = true;
 		var x = Math.floor((e.pageX - canvas.offsetLeft)/(canvas.width/gameBoard.cols));
@@ -29,6 +35,7 @@ window.onload = function(){
 
 	document.addEventListener("mouseup",function(){ mDown = false});
 	
+	//used for click and drag on the board
 	canvas.addEventListener("mousemove",function(e){
 		if(mDown){
 			var x = Math.floor((e.pageX - canvas.offsetLeft)/(canvas.width/gameBoard.cols));
@@ -40,7 +47,8 @@ window.onload = function(){
 			}
 		}	
 	});
-	var playButton = document.getElementById("play");
+
+	//pause/play button
 	playButton.addEventListener("click",function(){
 
 		playing = !playing;
@@ -49,17 +57,20 @@ window.onload = function(){
 			gameInterval = setInterval(
 				function()
 				{
+					//if no cells changed in the tick, pause game
 					if(gameBoard.tick())
 					{
 						playButton.innerHTML = "Play";
 						playing = false;
 						clearInterval(gameInterval);
 					}
-				},1000/10);
+				}
+				,1000/10);//10 times every second, 
 		else
 			clearInterval(gameInterval);
 	});
 
+	//clicking the "reset" button resets and resizes the board
 	document.getElementById("reset").addEventListener("click",function(){
 		var cols = parseInt(document.getElementById("cols").value);
 		var rows = parseInt(document.getElementById("rows").value);
@@ -67,15 +78,13 @@ window.onload = function(){
 		if(rows > 999) rows=1000;
 		playing = false;
 		playButton.innerHTML = "Play";
-		gameBoard = new Board();
 		gameBoard.init(cols,rows,canvas);
 		console.log("Board Reset!");
 	});
-
-	var rowCount = document.getElementById("rows");
-	var colCount;
 }
 
+//Board "class"
+//handles board state, drawing, game logic
 function Board(){	
 	this.init = function(cols,rows,canvas,colors = ["black","white","white"])
 	{
@@ -83,11 +92,14 @@ function Board(){
 		this.rows = rows;
 		this.w = canvas.width/cols;
 		this.h = canvas.height/rows;
+
 		this.canvas = canvas;
 		canvas.getContext("2d").fillRect(0,0,canvas.width,canvas.height,"white");
+		
 		this.colors = colors;
 		this.borderWidth = (canvas.width+canvas.height)/(15*(cols+rows));
-		var cells = []
+		
+		var cells = [];
 		for (var i = 0; i < this.cols; i++) 
 		{
 			var row = [];
@@ -100,9 +112,13 @@ function Board(){
 		}
 		this.cells = cells;
 	}
+	//one tick, check all cells
 	this.tick = function()
 	{
+		//flag to see if anything has changed
 		var flag = 1;
+
+		//copy current board state
 		var state = Array(this.rows);
 		for(var i = 0; i < this.cols; i++){
 			state[i]=(Array(this.rows));
@@ -111,6 +127,7 @@ function Board(){
 			}
 		}
 		
+		//check each cell
 		for (var i = 0; i < this.cols; i++) 
 		{
 			for (var k = 0; k < this.rows; k++) 
@@ -122,6 +139,7 @@ function Board(){
 				else if(!state[i][k] && n == 3)
 					this.cells[i][k] = 1;
 
+				//only draw a cell if it has changed
 				if(this.cells[i][k] != state[i][k]){
 					this.drawCell(i,k,this.cells[i][k]);
 					flag = 0;
@@ -131,21 +149,23 @@ function Board(){
 		return flag;
 	}
 
+	//count the neighbors at (x,y) in a given state
 	this.nNeighbors = function(x,y,state)
 	{
 		var n = 0;
 		for (var i = 0; i < 8; i++)
 		{
-			var oX = x+offsets[i].x, oY = y+offsets[i].y;
+			var oX = x+offsets[i].x, 
+				oY = y+offsets[i].y;
 
 			if(oX > -1 && oX < this.cols && oY > -1 && oY < this.rows)
-				if(state[oX][oY] == 1){
-					n++;
-				}
+				if(state[oX][oY] == 1)
+					n++;		
 		}	
 		return n;	
 	}
 
+	//draws a cell at x,y with the given value (1/0)
 	this.drawCell = function(x,y,val)
 	{
 		var ctx = this.canvas.getContext("2d");
