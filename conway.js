@@ -13,17 +13,22 @@ window.onload = function(){
 		lastClick = {x:-1,y:-1},
 		MMVal = 1, //used for click and drag
 		playButton = document.getElementById("play"),
-		canvas = document.getElementById("game");
+		canvas = document.getElementById("game"),
+		styleWidth = parseInt(window.getComputedStyle(canvas).width),
+		styleHeight = parseInt(window.getComputedStyle(canvas).height);
+
 
 	canvas.width = 500;
 	canvas.height = 500;
+
 	gameBoard.init(10,10,canvas);
 
 	//activate a cell at x,y and draw it
 	canvas.addEventListener("mousedown", function(e){
 		mDown = true;
-		var x = Math.floor((e.pageX - canvas.offsetLeft)/(canvas.width/gameBoard.cols));
-		var y = Math.floor((e.pageY - canvas.offsetTop)/(canvas.height/gameBoard.rows));
+		var x = Math.floor((e.pageX - canvas.offsetLeft)/(styleWidth/gameBoard.cols));
+		var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
+		console.log(x,y);
 		if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
 			var val = gameBoard.cells[x][y]? 0:1;
 			gameBoard.cells[x][y] = val;
@@ -33,13 +38,19 @@ window.onload = function(){
 		}
 	});
 
+	window.addEventListener("resize",function(){
+		var canv = document.getElementById('game');
+		styleWidth = parseInt(window.getComputedStyle(canv).width);
+		styleHeight = parseInt(window.getComputedStyle(canv).height);
+	});
+
 	document.addEventListener("mouseup",function(){ mDown = false});
 	
 	//used for click and drag on the board
 	canvas.addEventListener("mousemove",function(e){
 		if(mDown){
-			var x = Math.floor((e.pageX - canvas.offsetLeft)/(canvas.width/gameBoard.cols));
-			var y = Math.floor((e.pageY - canvas.offsetTop)/(canvas.height/gameBoard.rows));
+			var x = Math.floor((e.pageX - canvas.offsetLeft)/(styleWidth/gameBoard.cols));
+			var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
 			if(lastClick.x == x && lastClick.y == y)return;
 			if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
 				gameBoard.cells[x][y] = MMVal;
@@ -156,10 +167,13 @@ function Board(){
 		for (var i = 0; i < 8; i++)
 		{
 			var oX = x+offsets[i].x, 
-				oY = y+offsets[i].y;
+				oY = y+offsets[i].y
+			oX = (oX < 0) ? this.cols-1: 
+				 (oX > this.cols-1) ? 0 : oX;
+			oY = (oY < 0) ? this.rows-1: 
+				 (oY > this.rows-1) ? 0 : oY;
 
-			if(oX > -1 && oX < this.cols && oY > -1 && oY < this.rows)
-				if(state[oX][oY] == 1)
+			if(state[oX][oY] == 1)
 					n++;		
 		}	
 		return n;	

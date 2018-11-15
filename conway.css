@@ -1,14 +1,12 @@
 body{
-	background-color: lightblue;
+	background-color: lightskyblue;
 	font-family: "Arial", san-serif;
 	font-size: 16pt;
 }
 #main{
-
 	display: grid;
 	grid-template-columns: 9% 72% 16%;
 	grid-column-gap: 15px;
-
 }
 #game{
 	margin: auto;
@@ -18,7 +16,7 @@ body{
 }
 .gamebutton{
 	margin:auto;
-	background-color: lightpink;
+	background-color: lightgrey;
 	width: 80%;
 	height: 20px;
 	padding: auto;
@@ -30,7 +28,7 @@ body{
 	margin: auto;
 	margin-top:-30%;
 	overflow: hidden;
-	background-color: lightpink;
+	background-color: lightgrey;
 	width: 80%;
 	height: 20px;
 	font-size: 8pt;
@@ -40,7 +38,7 @@ body{
 	margin: auto;
 	margin-top:-30%;
 	overflow: hidden;
-	background-color: lightpink;
+	background-color: lightgrey;
 	width: 80%;
 	height: 20px;
 	font-size: 8pt;
@@ -53,14 +51,14 @@ body{
 #buttons{
 	display: grid;
 	grid-gap: 5% 5% 5% 2% 5% 2%;
-	background-color: white;
+	background-color: beige;
 	border: 5px black solid;
 	border-radius: 10px;
 	text-align: center;
 	overflow: hidden;
 }
 #info{
-	background-color: white;
+	background-color: beige;
 	border: 5px black solid;
 	font-family: "Arial", san-serif;
 	font-size: 12pt;
@@ -74,4 +72,69 @@ body{
     -ms-user-select: none;
     user-select: none;
     overflow:hidden;
+}
+
+@media screen and (max-width: 800px){
+	body{
+		margin: 0;
+	}
+	label{
+		padding-top: 25px;
+		text-align: right;
+	}
+	#main{
+		grid-template-rows: 16% 72%;
+		grid-template-columns: unset;
+	}
+	#game{
+		width: 300px;
+		height: 300px;
+	}
+	.gamebutton{
+		margin:auto;
+		background-color: lightgrey;
+		width: 90%;
+		height: 40px;
+		padding: auto;
+		overflow: hidden;
+		border: 2px solid black;
+		border-radius: 20%;
+	}
+	#rows{
+		margin: auto;
+		margin-top:25px;
+		overflow: hidden;
+		background-color: lightgrey;
+		width: 80%;
+	}
+	#cols{
+		margin: auto;
+		margin-top:25px;
+		overflow: hidden;
+		background-color: lightgrey;
+		width: 80%;
+	}
+	.gamebutton:hover{
+		cursor: pointer;
+		background-color: lightgrey;
+	}
+	#buttons{
+		display: grid;
+		grid-template-columns: auto auto auto auto auto auto;
+		border: unset;
+		border-radius: unset;
+	}
+	#info{
+		width: 100%;
+		float: left;
+		border: unset;
+		border-radius: unset;
+	    overflow: unset;
+	}
+
+	@media screen and (max-width: 800){
+
+
+	}
+
 }
