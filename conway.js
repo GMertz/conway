@@ -2,26 +2,32 @@
 
 //offsets used for checking neighbors
 var offsets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
+var ctx, canvas, useGrid = false, gSpeed = 10, odds = 60;
 
 window.onload = function(){
+	canvas = document.getElementById("game");
+	ctx = canvas.getContext("2d");
+
 	var gameBoard = new Board(),
 	 	playing = false,
 		gameInterval,
 		mDown = false,
 
-		//so you dont turn toggle a cell you just toggled when clicking and dragging
+		//so you dont turn toggle a cell you just toggled
 		lastClick = {x:-1,y:-1},
 		MMVal = 1, //used for click and drag
 		playButton = document.getElementById("play"),
-		canvas = document.getElementById("game"),
-		styleWidth = parseInt(window.getComputedStyle(canvas).width),
-		styleHeight = parseInt(window.getComputedStyle(canvas).height);
+		buttonPanel = document.getElementById("buttonPanel"),
+		b_toggle = false,
+		pPix = ["url('play.png')","url('pause.png')"];
 
 
-	canvas.width = 500;
-	canvas.height = 500;
+	canvas.width = 5000;
+	canvas.height = 5000;
+	var styleWidth = parseInt(window.getComputedStyle(canvas).width);
+	var styleHeight = parseInt(window.getComputedStyle(canvas).height);
 
-	gameBoard.init(10,10,canvas);
+	gameBoard.init(20,20);
 
 	//activate a cell at x,y and draw it
 	canvas.addEventListener("mousedown", function(e){
@@ -39,9 +45,8 @@ window.onload = function(){
 	});
 
 	window.addEventListener("resize",function(){
-		var canv = document.getElementById('game');
-		styleWidth = parseInt(window.getComputedStyle(canv).width);
-		styleHeight = parseInt(window.getComputedStyle(canv).height);
+		styleWidth = parseInt(window.getComputedStyle(canvas).width);
+		styleHeight = parseInt(window.getComputedStyle(canvas).height);
 	});
 
 	document.addEventListener("mouseup",function(){ mDown = false});
@@ -53,32 +58,52 @@ window.onload = function(){
 			var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
 			if(lastClick.x == x && lastClick.y == y)return;
 			if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
-				gameBoard.cells[x][y] = MMVal;
-				gameBoard.drawCell(x,y,MMVal);
+				if(gameBoard.cells[x][y] != MMVal)
+				{
+					gameBoard.cells[x][y] = MMVal;
+					gameBoard.drawCell(x,y,MMVal);
+					gameBoard.drawGridLines();
+				}
 			}
 		}	
 	});
 
 	//pause/play button
 	playButton.addEventListener("click",function(){
-
 		playing = !playing;
-		playButton.innerHTML = playing? "Pause" : "Play";
-		if(playing)
+		playButton.style.backgroundImage = pPix[playing?1:0];
+		if(playing){
+			var TPS = parseInt(document.getElementById("speed").value);
 			gameInterval = setInterval(
 				function()
 				{
 					//if no cells changed in the tick, pause game
 					if(gameBoard.tick())
 					{
-						playButton.innerHTML = "Play";
 						playing = false;
 						clearInterval(gameInterval);
 					}
+					playButton.style.backgroundImage = pPix[playing?1:0];
 				}
-				,1000/10);//10 times every second, 
+				,1000/TPS);
+		}
 		else
 			clearInterval(gameInterval);
+	});
+
+	document.getElementById("random").addEventListener("click",function(){
+		var odds = parseInt(document.getElementById("ranNum").value);
+		for(var i = 0; i < gameBoard.rows; i++)
+			for(var k = 0; k < gameBoard.rows; k++){
+				var val = Math.floor(Math.random()*100) < odds? 1:0;
+				gameBoard.cells[i][k] = val; //60% chance
+				gameBoard.drawCell(i,k,val);
+			}
+			gameBoard.drawGridLines();
+	});
+
+	document.getElementById("toggleGrid").addEventListener("click",function(){
+			useGrid != useGrid;
 	});
 
 	//clicking the "reset" button resets and resizes the board
@@ -88,27 +113,45 @@ window.onload = function(){
 		if (cols > 999) cols=1000;
 		if(rows > 999) rows=1000;
 		playing = false;
-		playButton.innerHTML = "Play";
-		gameBoard.init(cols,rows,canvas);
+		playButton.style.backgroundImage = pPix[0];
+		gameBoard.init(cols,rows);
 		console.log("Board Reset!");
+	});
+
+	document.getElementById("buttonsToggle").addEventListener("click",function(){
+		if(b_toggle){
+			buttonPanel.style.visibility = "visible";
+			this.style.transform ="rotate(0deg)";
+		}
+		else{
+			buttonPanel.style.visibility = "hidden";
+			this.style.transform ="rotate(270deg)";
+		}
+		b_toggle = !b_toggle;//toggle button
 	});
 }
 
+function randomColor()
+{
+	return {r:Math.floor(Math.random()*255),
+			g:Math.floor(Math.random()*255),
+			b:Math.floor(Math.random()*255)};
+}
 //Board "class"
 //handles board state, drawing, game logic
 function Board(){	
-	this.init = function(cols,rows,canvas,colors = ["black","white","white"])
+	this.init = function(cols,rows,colors = ["black","white","white"])
 	{
 		this.cols = cols;
 		this.rows = rows;
 		this.w = canvas.width/cols;
 		this.h = canvas.height/rows;
-
-		this.canvas = canvas;
-		canvas.getContext("2d").fillRect(0,0,canvas.width,canvas.height,"white");
+		//store live cells in a list, only check them each loop and cells within -1/+1 of furthest NSEW
+		ctx.fillRect(0,0,canvas.width,canvas.height,"white");
+		ctx.globalAlpha = 1;
 		
 		this.colors = colors;
-		this.borderWidth = (canvas.width+canvas.height)/(15*(cols+rows));
+		this.borderWidth = [canvas.height/(rows*rows),canvas.width/(cols*cols)];
 		
 		var cells = [];
 		for (var i = 0; i < this.cols; i++) 
@@ -121,6 +164,7 @@ function Board(){
 			}
 			cells.push(row);
 		}
+		this.drawGridLines();
 		this.cells = cells;
 	}
 	//one tick, check all cells
@@ -157,6 +201,7 @@ function Board(){
 				}
 			}
 		}
+		this.drawGridLines();
 		return flag;
 	}
 
@@ -173,8 +218,7 @@ function Board(){
 			oY = (oY < 0) ? this.rows-1: 
 				 (oY > this.rows-1) ? 0 : oY;
 
-			if(state[oX][oY] == 1)
-					n++;		
+			if(state[oX][oY] == 1)n++;		
 		}	
 		return n;	
 	}
@@ -182,14 +226,40 @@ function Board(){
 	//draws a cell at x,y with the given value (1/0)
 	this.drawCell = function(x,y,val)
 	{
-		var ctx = this.canvas.getContext("2d");
-		ctx.fillStyle = this.colors[val];
-		ctx.fillRect(x*this.w,y*this.h,this.w-this.borderWidth/4,this.h-this.borderWidth/4);
-		ctx.beginPath();
+		if(val)
+		{
+			var c = randomColor();
+			ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
+		}
+		else
+			ctx.fillStyle = this.colors[val];
+		var ofs = {w:this.borderWidth[0],h:this.borderWidth[1]};
+		ctx.fillRect(x*this.w,y*this.h,this.w,this.h);
+	}
+	this.drawGridLines = function()
+	{
+		if(!useGrid)return;
 		ctx.strokeStyle = this.colors[2];
-		ctx.lineWidth = this.borderWidth;
-		ctx.rect(x*this.w,y*this.h,this.w,this.h);
-		ctx.stroke();
+		ctx.lineWidth = this.borderWidth[0];
+		for (var i = 0; i < this.cols; i++)
+		{
+			ctx.beginPath();
+			ctx.moveTo(this.w*i,0);
+			ctx.lineTo(this.w*i,canvas.width);
+			ctx.stroke();	
+			ctx.strokeStyle = this.colors[1];	
+			ctx.stroke();
+		}
+		ctx.lineWidth = this.borderWidth[1];
+		for (var i = 0; i < this.rows; i++) 
+		{
+			ctx.beginPath();
+			ctx.moveTo(0,this.h*i);
+			ctx.lineTo(canvas.height,this.h*i);
+			ctx.stroke();	
+			ctx.strokeStyle = this.colors[1];
+			ctx.stroke();
+		}		
 	}
 
 }
