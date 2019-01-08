@@ -89,7 +89,7 @@ window.onload = function(){
 	document.getElementById("mode").addEventListener("change",function(){colMode = this.value;});
 
 	//-------Button Contols-------
-	document.getElementById("buttonsToggle").addEventListener("click",function(){//Buttons view
+	var buttonView = function(){//Buttons view
 		if(b_toggle){
 			buttonPanel.style.visibility = "visible";
 			this.style.transform ="rotate(0deg)";
@@ -99,30 +99,17 @@ window.onload = function(){
 			this.style.transform ="rotate(270deg)";
 		}
 		b_toggle = !b_toggle;//toggle button
-	});
-	playButton.addEventListener("click",function(){//Play
+	};
+
+	var start = function(){//Play
 		playing = !playing;
 		playButton.style.backgroundImage = pPix[playing?1:0];
 		if(playing)
 			gameInterval = setInterval(gameLoop,1000/gSpeed);
 		else
 			clearInterval(gameInterval);
-	});
-	document.getElementById("speed").addEventListener("change",function(){
-		gSpeed = parseInt(document.getElementById("speed").value);
-		if(playing){
-			clearInterval(gameInterval);
-			gameInterval = setInterval(gameLoop,1000/gSpeed);
-		}	
-	});
-	document.getElementById("random").addEventListener("click",function(){//Random fill
-		var odds = parseInt(document.getElementById("ranNum").value);
-		for(var i = 0; i < gameBoard.cols; i++)
-			for(var k = 0; k < gameBoard.rows; k++)
-				gameBoard.setCell(i,k,Math.floor(Math.random()*100) < odds? 1:0);
-	});
-	document.getElementById("toggleGrid").addEventListener("click",gridToggle);//Toggle grid
-	document.getElementById("reset").addEventListener("click",function(){//Reset/resize grid
+	};
+	var reset = function(){//Reset/resize grid
 		var cols = parseInt(colNum.value);
 		var rows = parseInt(rowNum.value);
 		if (cols > 999) cols=1000;
@@ -133,8 +120,45 @@ window.onload = function(){
 		useGrid = false;
 		gridToggle();
 		console.log("Board Reset!");
+	};
+	var mix = function(){//Random fill
+		var odds = parseInt(document.getElementById("ranNum").value);
+		for(var i = 0; i < gameBoard.cols; i++)
+			for(var k = 0; k < gameBoard.rows; k++)
+				gameBoard.setCell(i,k,Math.floor(Math.random()*100) < odds? 1:0);
+	};
+	document.getElementById("buttonsToggle").addEventListener("click",buttonView);
+	playButton.addEventListener("click",start);
+	document.getElementById("speed").addEventListener("change",function(){
+		gSpeed = parseInt(document.getElementById("speed").value);
+		if(playing){
+			clearInterval(gameInterval);
+			gameInterval = setInterval(gameLoop,1000/gSpeed);
+		}	
 	});
+	document.getElementById("random").addEventListener("click",mix);
+	document.getElementById("toggleGrid").addEventListener("click",gridToggle);//Toggle grid
+	document.getElementById("reset").addEventListener("click",reset);
 
+	document.addEventListener("keydown",function(e)
+	{
+		switch(e.keyCode)
+		{
+			case 32://space
+				start();
+				break;
+			case 71://g
+				gridToggle();
+				break;
+			case 82://r
+				reset();
+				break;
+			case 77://m
+				mix();
+				break;
+			default: break;
+		}
+	});
 	//-------For screen resizing--------
 	window.addEventListener("resize",function(){
 		styleWidth = parseInt(window.getComputedStyle(canvas).width);
@@ -149,7 +173,7 @@ function gridToggle()
 		gctx.clearRect(0,0,canvas.width,canvas.height);
 	else
 	{
-		gctx.strokeStyle = "grey";
+		gctx.strokeStyle = "darkgreen";
 		gctx.lineWidth = 2 + 10/(1+Math.log(gameBoard.cols));
 		for (var i = 0; i < gameBoard.cols; i++)
 		{
@@ -179,8 +203,6 @@ function getColor(i,k)
 		return `rgb(${255/((gameBoard.cols/i+1))},
 					${0},
 					${255/(gameBoard.rows/k+1)})`;
-
-
 }
 
 function updateCol()

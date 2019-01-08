@@ -20,13 +20,13 @@ canvas {
 	height: 100%;
 }
 .gamebutton{
-	margin: auto;
 	background-color: lightgrey;
 	width: 40px;
 	height: 40px;
 	overflow: hidden;
 	border: 2px solid black;
 	border-radius: 50%;
+	font-size: 9pt;
 }
 #play{
 	background-image: url("play.png");
@@ -66,6 +66,7 @@ canvas {
 	background-color: lightgrey;
 }
 #buttonPanel{
+	text-align: center;
 	position: fixed;
 	left: 20px;
 	top: 75px;
@@ -100,8 +101,4 @@ canvas {
     background-size: 100%;
     z-index: 10;
     background-color: beige;
-}
-
-@media screen and (max-width: 800px){
-	/*set control to top*/
 }
