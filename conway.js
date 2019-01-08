@@ -2,123 +2,94 @@
 
 //offsets used for checking neighbors
 var offsets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
-var ctx, canvas, useGrid = false, gSpeed = 10, odds = 60;
+var ctx, canvas, useGrid = false, gSpeed = 10, odds = 60, valRGB = {r:0,g:0,b:0}, cRGB = {r:0,g:0,b:0}, gctx, gameBoard, colMode = 2;
 
 window.onload = function(){
+	//-------Canvas and content-------
 	canvas = document.getElementById("game");
 	ctx = canvas.getContext("2d");
+	var grid = document.getElementById("grid");
+	gctx = grid.getContext('2d');
 
-	var gameBoard = new Board(),
-	 	playing = false,
-		gameInterval,
-		mDown = false,
-
-		//so you dont turn toggle a cell you just toggled
+	//-------Mouse Control-------
+		var mDown = false,
 		lastClick = {x:-1,y:-1},
 		MMVal = 1, //used for click and drag
+
+	//-------Buttons-------
 		playButton = document.getElementById("play"),
 		buttonPanel = document.getElementById("buttonPanel"),
 		b_toggle = false,
 		pPix = ["url('play.png')","url('pause.png')"];
 
+	//-------Colors-------
+		cRGB = {r:document.getElementById("red"),
+				g:document.getElementById("green"),b:document.getElementById("blue")};
+		valRGB = {r:parseInt(cRGB.r.value),g:parseInt(cRGB.g.value),b:parseInt(cRGB.b.value)};
 
+	//-------Game control-------
+	var	playing = false,
+		gameInterval,
+		gameLoop = function()
+		{
+			//if no cells changed in the tick, pause game
+			if(gameBoard.tick())
+			{
+				playing = false;
+				clearInterval(gameInterval);
+			}
+			playButton.style.backgroundImage = pPix[playing?1:0];
+		};
+
+	//-------Board Setup-------
+	var colNum = document.getElementById("cols");
+	var rowNum = document.getElementById("rows");
 	canvas.width = 5000;
 	canvas.height = 5000;
+	grid.width = 5000;
+	grid.height = 5000;
 	var styleWidth = parseInt(window.getComputedStyle(canvas).width);
 	var styleHeight = parseInt(window.getComputedStyle(canvas).height);
+	gameBoard = new Board();
+	gameBoard.init(parseInt(colNum.value),parseInt(rowNum.value));
+	gridToggle();
 
-	gameBoard.init(20,20);
-
-	//activate a cell at x,y and draw it
-	canvas.addEventListener("mousedown", function(e){
+	//-------Mouse Listeners-------
+	document.addEventListener("mouseup",function(){ mDown = false});
+	grid.addEventListener("mousedown", function(e)//click to activate cell
+	{
 		mDown = true;
 		var x = Math.floor((e.pageX - canvas.offsetLeft)/(styleWidth/gameBoard.cols));
 		var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
 		console.log(x,y);
 		if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
-			var val = gameBoard.cells[x][y]? 0:1;
-			gameBoard.cells[x][y] = val;
-			gameBoard.drawCell(x,y,val);
+			var val = (!gameBoard.cells[x][y])?1:0;
+			console.log(val);
+			gameBoard.setCell(x,y,val);
 			lastClick = {x:x,y:y};
 			MMVal = val;
 		}
 	});
-
-	window.addEventListener("resize",function(){
-		styleWidth = parseInt(window.getComputedStyle(canvas).width);
-		styleHeight = parseInt(window.getComputedStyle(canvas).height);
-	});
-
-	document.addEventListener("mouseup",function(){ mDown = false});
-	
-	//used for click and drag on the board
-	canvas.addEventListener("mousemove",function(e){
+	grid.addEventListener("mousemove",function(e)//click and hold support
+	{
 		if(mDown){
 			var x = Math.floor((e.pageX - canvas.offsetLeft)/(styleWidth/gameBoard.cols));
 			var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
 			if(lastClick.x == x && lastClick.y == y)return;
-			if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
+			if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows)
 				if(gameBoard.cells[x][y] != MMVal)
-				{
-					gameBoard.cells[x][y] = MMVal;
-					gameBoard.drawCell(x,y,MMVal);
-					gameBoard.drawGridLines();
-				}
-			}
-		}	
-	});
-
-	//pause/play button
-	playButton.addEventListener("click",function(){
-		playing = !playing;
-		playButton.style.backgroundImage = pPix[playing?1:0];
-		if(playing){
-			var TPS = parseInt(document.getElementById("speed").value);
-			gameInterval = setInterval(
-				function()
-				{
-					//if no cells changed in the tick, pause game
-					if(gameBoard.tick())
-					{
-						playing = false;
-						clearInterval(gameInterval);
-					}
-					playButton.style.backgroundImage = pPix[playing?1:0];
-				}
-				,1000/TPS);
+					gameBoard.setCell(x,y,MMVal);
 		}
-		else
-			clearInterval(gameInterval);
 	});
 
-	document.getElementById("random").addEventListener("click",function(){
-		var odds = parseInt(document.getElementById("ranNum").value);
-		for(var i = 0; i < gameBoard.rows; i++)
-			for(var k = 0; k < gameBoard.rows; k++){
-				var val = Math.floor(Math.random()*100) < odds? 1:0;
-				gameBoard.cells[i][k] = val; //60% chance
-				gameBoard.drawCell(i,k,val);
-			}
-			gameBoard.drawGridLines();
-	});
+	//-------Color Control-------
+	document.getElementById("red").addEventListener("change",updateCol);
+	document.getElementById("green").addEventListener("change",updateCol);
+	document.getElementById("blue").addEventListener("change",updateCol);
+	document.getElementById("mode").addEventListener("change",function(){colMode = this.value;});
 
-	document.getElementById("toggleGrid").addEventListener("click",function(){
-			useGrid != useGrid;
-	});
-
-	//clicking the "reset" button resets and resizes the board
-	document.getElementById("reset").addEventListener("click",function(){
-		var cols = parseInt(document.getElementById("cols").value);
-		var rows = parseInt(document.getElementById("rows").value);
-		if (cols > 999) cols=1000;
-		if(rows > 999) rows=1000;
-		playing = false;
-		playButton.style.backgroundImage = pPix[0];
-		gameBoard.init(cols,rows);
-		console.log("Board Reset!");
-	});
-
-	document.getElementById("buttonsToggle").addEventListener("click",function(){
+	//-------Button Contols-------
+	document.getElementById("buttonsToggle").addEventListener("click",function(){//Buttons view
 		if(b_toggle){
 			buttonPanel.style.visibility = "visible";
 			this.style.transform ="rotate(0deg)";
@@ -129,29 +100,110 @@ window.onload = function(){
 		}
 		b_toggle = !b_toggle;//toggle button
 	});
+	playButton.addEventListener("click",function(){//Play
+		playing = !playing;
+		playButton.style.backgroundImage = pPix[playing?1:0];
+		if(playing)
+			gameInterval = setInterval(gameLoop,1000/gSpeed);
+		else
+			clearInterval(gameInterval);
+	});
+	document.getElementById("speed").addEventListener("change",function(){
+		gSpeed = parseInt(document.getElementById("speed").value);
+		if(playing){
+			clearInterval(gameInterval);
+			gameInterval = setInterval(gameLoop,1000/gSpeed);
+		}	
+	});
+	document.getElementById("random").addEventListener("click",function(){//Random fill
+		var odds = parseInt(document.getElementById("ranNum").value);
+		for(var i = 0; i < gameBoard.cols; i++)
+			for(var k = 0; k < gameBoard.rows; k++)
+				gameBoard.setCell(i,k,Math.floor(Math.random()*100) < odds? 1:0);
+	});
+	document.getElementById("toggleGrid").addEventListener("click",gridToggle);//Toggle grid
+	document.getElementById("reset").addEventListener("click",function(){//Reset/resize grid
+		var cols = parseInt(colNum.value);
+		var rows = parseInt(rowNum.value);
+		if (cols > 999) cols=1000;
+		if(rows > 999) rows=1000;
+		playing = false;
+		playButton.style.backgroundImage = pPix[0];
+		gameBoard.init(cols,rows);
+		useGrid = false;
+		gridToggle();
+		console.log("Board Reset!");
+	});
+
+	//-------For screen resizing--------
+	window.addEventListener("resize",function(){
+		styleWidth = parseInt(window.getComputedStyle(canvas).width);
+		styleHeight = parseInt(window.getComputedStyle(canvas).height);
+	});
 }
 
-function randomColor()
+function gridToggle()
 {
-	return {r:Math.floor(Math.random()*255),
-			g:Math.floor(Math.random()*255),
-			b:Math.floor(Math.random()*255)};
+	useGrid = !useGrid;
+	if(!useGrid)
+		gctx.clearRect(0,0,canvas.width,canvas.height);
+	else
+	{
+		gctx.strokeStyle = "grey";
+		gctx.lineWidth = 2 + 10/(1+Math.log(gameBoard.cols));
+		for (var i = 0; i < gameBoard.cols; i++)
+		{
+			gctx.beginPath();
+			gctx.moveTo(gameBoard.w*i,0);
+			gctx.lineTo(gameBoard.w*i,canvas.width);
+			gctx.stroke();	
+		}
+		gctx.lineWidth = 2 + 10/(1+Math.log(gameBoard.cols));
+		for (var i = 0; i < gameBoard.rows; i++) 
+		{
+			gctx.beginPath();
+			gctx.moveTo(0,gameBoard.h*i);
+			gctx.lineTo(canvas.height,gameBoard.h*i);
+			gctx.stroke();	
+		}		
+	}		
 }
+
+function getColor(i,k)
+{
+	if(colMode == 1)
+		return "white";
+	else if(colMode == 2)
+		return `rgb(${Math.floor(Math.random()*valRGB.r)},${Math.floor(Math.random()*valRGB.g)},${Math.floor(Math.random()*valRGB.b)})`;
+	else if(colMode == 3)
+		return `rgb(${255/((gameBoard.cols/i+1))},
+					${0},
+					${255/(gameBoard.rows/k+1)})`;
+
+
+}
+
+function updateCol()
+{	
+	valRGB = {r:parseInt(cRGB.r.value),g:parseInt(cRGB.g.value),b:parseInt(cRGB.b.value)};
+}
+
+
 //Board "class"
 //handles board state, drawing, game logic
 function Board(){	
-	this.init = function(cols,rows,colors = ["black","white","white"])
+	this.init = function(cols,rows)
 	{
 		this.cols = cols;
 		this.rows = rows;
 		this.w = canvas.width/cols;
 		this.h = canvas.height/rows;
-		//store live cells in a list, only check them each loop and cells within -1/+1 of furthest NSEW
+
 		ctx.fillRect(0,0,canvas.width,canvas.height,"white");
-		ctx.globalAlpha = 1;
+		//ctx.globalAlpha = 1;
 		
-		this.colors = colors;
 		this.borderWidth = [canvas.height/(rows*rows),canvas.width/(cols*cols)];
+		this.liveCells = [];
 		
 		var cells = [];
 		for (var i = 0; i < this.cols; i++) 
@@ -164,7 +216,6 @@ function Board(){
 			}
 			cells.push(row);
 		}
-		this.drawGridLines();
 		this.cells = cells;
 	}
 	//one tick, check all cells
@@ -181,7 +232,6 @@ function Board(){
 				state[i][k]=this.cells[i][k];
 			}
 		}
-		
 		//check each cell
 		for (var i = 0; i < this.cols; i++) 
 		{
@@ -201,7 +251,6 @@ function Board(){
 				}
 			}
 		}
-		this.drawGridLines();
 		return flag;
 	}
 
@@ -227,39 +276,15 @@ function Board(){
 	this.drawCell = function(x,y,val)
 	{
 		if(val)
-		{
-			var c = randomColor();
-			ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
-		}
+			ctx.fillStyle = getColor(x,y);
 		else
-			ctx.fillStyle = this.colors[val];
-		var ofs = {w:this.borderWidth[0],h:this.borderWidth[1]};
+			ctx.fillStyle = "black";
 		ctx.fillRect(x*this.w,y*this.h,this.w,this.h);
 	}
-	this.drawGridLines = function()
-	{
-		if(!useGrid)return;
-		ctx.strokeStyle = this.colors[2];
-		ctx.lineWidth = this.borderWidth[0];
-		for (var i = 0; i < this.cols; i++)
-		{
-			ctx.beginPath();
-			ctx.moveTo(this.w*i,0);
-			ctx.lineTo(this.w*i,canvas.width);
-			ctx.stroke();	
-			ctx.strokeStyle = this.colors[1];	
-			ctx.stroke();
-		}
-		ctx.lineWidth = this.borderWidth[1];
-		for (var i = 0; i < this.rows; i++) 
-		{
-			ctx.beginPath();
-			ctx.moveTo(0,this.h*i);
-			ctx.lineTo(canvas.height,this.h*i);
-			ctx.stroke();	
-			ctx.strokeStyle = this.colors[1];
-			ctx.stroke();
-		}		
-	}
 
+	this.setCell = function(x,y,val)
+	{
+		this.cells[x][y] = val;
+		this.drawCell(x,y,val);
+	}
 }
