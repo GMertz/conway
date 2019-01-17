@@ -40,6 +40,14 @@
 			</div>
 			<hr>
 			<div id="colors">
+				<label float="left" for="mode">Mode</label>
+				<div>
+					<select id="mode">
+						<option value="1">Default</option>
+						<option value="2">Random</option>
+						<option value="3" selected>Relative</option>
+					</select>
+				</div>
 				<div id="randomSel">
 					<label float="left" for="colors">Color</label>
 					<input type="range" name="red" min="1" max="255" value="255" id="red" class="sliders">
@@ -48,14 +56,6 @@
 					<label float="left" for="green">G</label>
 					<input type="range" name="blue" min="1" max="255" value="255" id="blue" class="sliders">
 					<label float="left" for="blue">B</label>
-				</div>
-				<label float="left" for="mode">Mode</label>
-				<div>
-					<select id="mode">
-						<option value="1">Default</option>
-						<option value="2" selected>Random</option>
-						<option value="3">Relative</option>
-					</select>
 				</div>
 			</div>
 				

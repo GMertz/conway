@@ -2,7 +2,7 @@
 
 //offsets used for checking neighbors
 var offsets = [{x:0,y:-1},{x:1,y:-1},{x:1,y:0},{x:1,y:1},{x:0,y:1},{x:-1,y:1},{x:-1,y:0},{x:-1,y:-1}];
-var ctx, canvas, useGrid = false, gSpeed = 10, odds = 60, valRGB = {r:0,g:0,b:0}, cRGB = {r:0,g:0,b:0}, gctx, gameBoard, colMode = 2;
+var ctx, canvas, useGrid = true, gSpeed = 10, odds = 60, valRGB = {r:0,g:0,b:0}, cRGB = {r:0,g:0,b:0}, gctx, gameBoard, colMode = 3;
 
 window.onload = function(){
 	//-------Canvas and content-------
@@ -19,7 +19,7 @@ window.onload = function(){
 	//-------Buttons-------
 		playButton = document.getElementById("play"),
 		buttonPanel = document.getElementById("buttonPanel"),
-		b_toggle = false,
+		b_toggle = true,
 		pPix = ["url('play.png')","url('pause.png')"];
 
 	//-------Colors-------
@@ -61,10 +61,8 @@ window.onload = function(){
 		mDown = true;
 		var x = Math.floor((e.pageX - canvas.offsetLeft)/(styleWidth/gameBoard.cols));
 		var y = Math.floor((e.pageY - canvas.offsetTop)/(styleHeight/gameBoard.rows));
-		console.log(x,y);
 		if(x > -1 && x < gameBoard.cols && y > -1 && y < gameBoard.rows){
 			var val = (!gameBoard.cells[x][y])?1:0;
-			console.log(val);
 			gameBoard.setCell(x,y,val);
 			lastClick = {x:x,y:y};
 			MMVal = val;
@@ -86,7 +84,14 @@ window.onload = function(){
 	document.getElementById("red").addEventListener("change",updateCol);
 	document.getElementById("green").addEventListener("change",updateCol);
 	document.getElementById("blue").addEventListener("change",updateCol);
-	document.getElementById("mode").addEventListener("change",function(){colMode = this.value;});
+	document.getElementById("mode").addEventListener("change",function()
+		{
+			colMode = this.value;
+			if(colMode == 2)
+				document.getElementById("randomSel").style.visibility = "visible";
+			else
+				document.getElementById("randomSel").style.visibility = "hidden";
+		});
 
 	//-------Button Contols-------
 	var buttonView = function(){//Buttons view
@@ -117,9 +122,8 @@ window.onload = function(){
 		playing = false;
 		playButton.style.backgroundImage = pPix[0];
 		gameBoard.init(cols,rows);
-		useGrid = false;
+		useGrid = true;
 		gridToggle();
-		console.log("Board Reset!");
 	};
 	var mix = function(){//Random fill
 		var odds = parseInt(document.getElementById("ranNum").value);
@@ -144,7 +148,7 @@ window.onload = function(){
 	{
 		switch(e.keyCode)
 		{
-			case 32://space
+			case 80://p
 				start();
 				break;
 			case 71://g
@@ -170,11 +174,14 @@ function gridToggle()
 {
 	useGrid = !useGrid;
 	if(!useGrid)
+	{
 		gctx.clearRect(0,0,canvas.width,canvas.height);
+	}
 	else
 	{
-		gctx.strokeStyle = "darkgreen";
-		gctx.lineWidth = 2 + 10/(1+Math.log(gameBoard.cols));
+		gctx.globalAlpha = .3;
+		gctx.strokeStyle = "white";
+		gctx.lineWidth = 5-(gameBoard.cols/333);
 		for (var i = 0; i < gameBoard.cols; i++)
 		{
 			gctx.beginPath();
@@ -182,14 +189,15 @@ function gridToggle()
 			gctx.lineTo(gameBoard.w*i,canvas.width);
 			gctx.stroke();	
 		}
-		gctx.lineWidth = 2 + 10/(1+Math.log(gameBoard.cols));
+		gctx.lineWidth = 5-(gameBoard.rows/333);
 		for (var i = 0; i < gameBoard.rows; i++) 
 		{
 			gctx.beginPath();
 			gctx.moveTo(0,gameBoard.h*i);
 			gctx.lineTo(canvas.height,gameBoard.h*i);
 			gctx.stroke();	
-		}		
+		}
+		gctx.globalAlpha = 1;		
 	}		
 }
 
@@ -199,10 +207,11 @@ function getColor(i,k)
 		return "white";
 	else if(colMode == 2)
 		return `rgb(${Math.floor(Math.random()*valRGB.r)},${Math.floor(Math.random()*valRGB.g)},${Math.floor(Math.random()*valRGB.b)})`;
-	else if(colMode == 3)
+	else if(colMode == 3){
 		return `rgb(${255/((gameBoard.cols/i+1))},
-					${0},
-					${255/(gameBoard.rows/k+1)})`;
+			${(10*Math.sqrt(Math.pow(gameBoard.rows,2)+Math.pow(gameBoard.cols,2))/(1+Math.abs(i-k)))},
+			${255/(gameBoard.rows/k+1)})`;
+	}
 }
 
 function updateCol()
